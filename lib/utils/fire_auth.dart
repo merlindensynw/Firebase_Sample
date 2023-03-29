@@ -1,25 +1,30 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebaseexample/utils/users.dart';
 
 class FireAuth {
   // For registering a new user
-  static Future<User?> registerUsingEmailPassword({
-    required String name,
-    required String email,
+  static Future<Users?> registerUsingEmailPassword({
+    required Users users,
     required String password,
   }) async {
     FirebaseAuth auth = FirebaseAuth.instance;
-    User? user;
 
     try {
       UserCredential userCredential = await auth.createUserWithEmailAndPassword(
-        email: email,
+        email: users.email,
         password: password,
       );
 
-      user = userCredential.user;
-      await user!.updateProfile(displayName: name);
-      await user.reload();
-      user = auth.currentUser;
+      var collection = FirebaseFirestore.instance.collection('collection');
+      var docSnapshot = await collection.doc('doc_id').get();
+      Map<String, dynamic>? data = docSnapshot.data();
+
+      final user =
+          users.rebuild((p0) => p0.id = userCredential.user?.uid ?? '');
+      var ref = FirebaseFirestore.instance.collection('users').doc(users.id);
+      await ref.set(user.toJson());
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         print('The password provided is too weak.');
@@ -29,24 +34,52 @@ class FireAuth {
     } catch (e) {
       print(e);
     }
+  }
 
-    return user;
+  Future<void> update(Users data) async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    return FirebaseFirestore.instance
+        .collection('Users')
+        .doc(user?.uid ?? '')
+        .update(data.toJson());
+  }
+
+  Future<void> delete(Users data) async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user?.uid ?? '')
+        .delete();
+  }
+
+  Stream<List<Users>> getStream() {
+    Stream<QuerySnapshot<Map<String, dynamic>>> ref =
+        FirebaseFirestore.instance.collection('users').snapshots();
+    Stream<List<QueryDocumentSnapshot<Map<String, dynamic>>>> docs =
+        ref.map((event) => event.docs);
+    return docs
+        .map((event) => event.map((e) => Users.fromJson(e.data())).toList());
   }
 
   // For signing in an user (have already registered)
-  static Future<User?> signInUsingEmailPassword({
+  static Future<Users?> signInUsingEmailPassword({
     required String email,
     required String password,
   }) async {
     FirebaseAuth auth = FirebaseAuth.instance;
-    User? user;
 
     try {
       UserCredential userCredential = await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      user = userCredential.user;
+      DocumentSnapshot<Map<String, dynamic>> ref = await FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(userCredential.user?.uid)
+          .get();
+      Users user = Users.fromJson(ref.data() ?? {});
+      return user;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         print('No user found for that email.');
@@ -54,8 +87,6 @@ class FireAuth {
         print('Wrong password provided.');
       }
     }
-
-    return user;
   }
 
   static Future<User?> refreshUser(User user) async {
@@ -66,7 +97,22 @@ class FireAuth {
 
     return refreshedUser;
   }
-  static Future<void> signout() async{
-  await FirebaseAuth.instance.signOut();
-}
+
+  static Future<void> signout() async {
+    await FirebaseAuth.instance.signOut();
+  }
+
+  Future<void> addMessage(
+      {required String message, required String uid}) async {
+    var ref = FirebaseFirestore.instance.collection('chat').doc();
+    await ref.set({'message': message, 'userId': uid});
+  }
+
+  Stream<List<Map<String, dynamic>>> getMessages() {
+    Stream<QuerySnapshot<Map<String, dynamic>>> ref =
+        FirebaseFirestore.instance.collection('chat').snapshots();
+    return ref.map((QuerySnapshot<Map<String, dynamic>> event) =>
+        event.docs.map((e) => e.data()).toList());
+
+  }
 }

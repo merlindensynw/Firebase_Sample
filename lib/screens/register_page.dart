@@ -4,6 +4,7 @@ import 'package:firebaseexample/screens/welcome%20page.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/fire_auth.dart';
+import '../utils/users.dart';
 import '../utils/validator.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -12,6 +13,8 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  List<String> gender = ['Male', 'Female'];
+  String? selectedGender = 'Male';
   final _registerFormKey = GlobalKey<FormState>();
 
   final _nameTextController = TextEditingController();
@@ -23,6 +26,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final _focusPassword = FocusNode();
 
   bool _isProcessing = false;
+
+  set dropdownValue(String dropdownValue) {}
+
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +55,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       TextFormField(
                         controller: _nameTextController,
                         focusNode: _focusName,
-                        validator: (value) => Validator.validateName(
-                          name: value,
-                        ),
+                        validator: (value) =>
+                            Validator.validateName(
+                              name: value,
+                            ),
                         decoration: InputDecoration(
                           hintText: "Name",
                           errorBorder: UnderlineInputBorder(
@@ -66,9 +73,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       TextFormField(
                         controller: _emailTextController,
                         focusNode: _focusEmail,
-                        validator: (value) => Validator.validateEmail(
-                          email: value,
-                        ),
+                        validator: (value) =>
+                            Validator.validateEmail(
+                              email: value,
+                            ),
                         decoration: InputDecoration(
                           hintText: "Email",
                           errorBorder: UnderlineInputBorder(
@@ -79,14 +87,27 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ),
+                      DropdownButton<String>(
+                          value: selectedGender,
+                          items: gender.map((gender) =>
+                              DropdownMenuItem<String>(
+                                value: gender,
+                                child: Text(
+                                    gender, style: TextStyle(fontSize: 24)),
+                              ))
+                              .toList(),
+                          onChanged: (gender) =>
+                              setState(() => selectedGender = gender)
+                      ),
                       SizedBox(height: 16.0),
                       TextFormField(
                         controller: _passwordTextController,
                         focusNode: _focusPassword,
                         obscureText: true,
-                        validator: (value) => Validator.validatePassword(
-                          password: value,
-                        ),
+                        validator: (value) =>
+                            Validator.validatePassword(
+                              password: value,
+                            ),
                         decoration: InputDecoration(
                           hintText: "Password",
                           errorBorder: UnderlineInputBorder(
@@ -105,18 +126,20 @@ class _RegisterPageState extends State<RegisterPage> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () async {
-                                setState(() {
-                                  _isProcessing = true;
-                                });
-
                                 if (_registerFormKey.currentState!
                                     .validate()) {
-                                  User? user = await FireAuth
+                                  setState(() {
+                                    _isProcessing = true;
+                                  });
+                                  Users? user = await FireAuth
                                       .registerUsingEmailPassword(
-                                    name: _nameTextController.text,
-                                    email: _emailTextController.text,
-                                    password:
-                                    _passwordTextController.text,
+                                    users: Users((b) =>
+                                    b
+                                      ..id = ''
+                                      ..email = _emailTextController.text..
+                                    name=_nameTextController.text..
+                                    gender= selectedGender),
+                                    password: _passwordTextController.text,
                                   );
 
                                   setState(() {
