@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebaseexample/screens/home_page.dart';
 import 'package:flutter/material.dart';
 
 import 'screens/login_page.dart';
@@ -9,6 +10,7 @@ Future<void> main() async {
   runApp(MyApp());
 }
 
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -16,5 +18,6 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Authentication',
       home: LoginPage(),
     );
+
   }
 }

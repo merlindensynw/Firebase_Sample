@@ -17,13 +17,9 @@ class FireAuth {
         password: password,
       );
 
-      var collection = FirebaseFirestore.instance.collection('collection');
-      var docSnapshot = await collection.doc('doc_id').get();
-      Map<String, dynamic>? data = docSnapshot.data();
-
       final user =
           users.rebuild((p0) => p0.id = userCredential.user?.uid ?? '');
-      var ref = FirebaseFirestore.instance.collection('users').doc(users.id);
+      var ref = FirebaseFirestore.instance.collection('users').doc(user.id);
       await ref.set(user.toJson());
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -52,13 +48,12 @@ class FireAuth {
         .delete();
   }
 
-  Stream<List<Users>> getStream() {
+  static Stream<List<Map<String, dynamic>>> getStream() {
     Stream<QuerySnapshot<Map<String, dynamic>>> ref =
-        FirebaseFirestore.instance.collection('users').snapshots();
+        FirebaseFirestore.instance.collection('chat').snapshots();
     Stream<List<QueryDocumentSnapshot<Map<String, dynamic>>>> docs =
         ref.map((event) => event.docs);
-    return docs
-        .map((event) => event.map((e) => Users.fromJson(e.data())).toList());
+    return docs.map((event) => event.map((e) => (e.data())).toList());
   }
 
   // For signing in an user (have already registered)
@@ -102,7 +97,7 @@ class FireAuth {
     await FirebaseAuth.instance.signOut();
   }
 
-  Future<void> addMessage(
+  static Future<void> addMessage(
       {required String message, required String uid}) async {
     var ref = FirebaseFirestore.instance.collection('chat').doc();
     await ref.set({'message': message, 'userId': uid});
@@ -113,6 +108,5 @@ class FireAuth {
         FirebaseFirestore.instance.collection('chat').snapshots();
     return ref.map((QuerySnapshot<Map<String, dynamic>> event) =>
         event.docs.map((e) => e.data()).toList());
-
   }
 }

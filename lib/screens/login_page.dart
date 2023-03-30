@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebaseexample/screens/home_page.dart';
 import 'package:firebaseexample/screens/welcome page.dart';
 import 'package:firebaseexample/screens/register_page.dart';
 import 'package:firebaseexample/screens/welcome%20page.dart';
@@ -24,23 +25,6 @@ class _LoginPageState extends State<LoginPage> {
   final _focusPassword = FocusNode();
 
   bool _isProcessing = false;
-  // @override
-  // initState(){
-  //   super.initState();
-  //   Users? users = FirebaseAuth.instance.currentUser;
-  //
-  //   if (user != null) {
-  //     Navigator.of(context).pushReplacement(
-  //       MaterialPageRoute(
-  //         builder: (context) => WelcomePage(
-  //           user: user,
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //
-  // }
-  //
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                                 .pushReplacement(
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    WelcomePage(user: user),
+                                    HomePage(),
                               ),
                             );
                           }
